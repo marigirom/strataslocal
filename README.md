@@ -1,6 +1,6 @@
 # StratasLocal
 
-> A self-contained, phase-by-phase lab that builds a production-grade local
+> [Branch A edit] A comprehensive, phase-by-phase lab that builds a production-grade local
 > stack — from Linux baseline through Docker, Kubernetes, CI/CD, GitOps, and
 > Observability — on a single developer workstation.
 
