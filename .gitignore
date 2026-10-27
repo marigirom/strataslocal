@@ -1,0 +1,120 @@
+# =============================================================================
+# StratasLocal — .gitignore
+# Covers: Python, Node, Terraform, secrets, OS artefacts, editor, minikube, Vagrant
+# =============================================================================
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# --- Node.js -----------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnp
+.pnp.js
+.npm
+.yarn-integrity
+*.tsbuildinfo
+
+# --- Terraform ---------------------------------------------------------------
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# --- Secrets / credentials ---------------------------------------------------
+*.env
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+.env*
+!.env.example
+secrets/
+vault/
+credentials/
+
+# --- OS artefacts ------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# --- Editor / IDE ------------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.orig
+.project
+.classpath
+.settings/
+*.iml
+.editorconfig.bak
+
+# --- minikube ----------------------------------------------------------------
+.minikube/
+kubeconfig
+kubeconfig.*
+
+# --- Vagrant -----------------------------------------------------------------
+.vagrant/
+*.box
+
+# --- Misc project artefacts --------------------------------------------------
+logs/
+*.log
+tmp/
+temp/
