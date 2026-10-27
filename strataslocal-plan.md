@@ -89,7 +89,7 @@ strataslocal/
 
 ## Sub-Task 1 — Phase 0: Git Foundation
 
-**Status:** `[ ] pending`
+**Status:** `[x] done`
 
 ### Intent
 Establish professional version-control habits before any code is written.
