@@ -1,0 +1,40 @@
+# .pre-commit-config.yaml
+# StratasLocal — pre-commit hook configuration
+# Run `pre-commit install` after cloning to activate these hooks locally.
+# Run `pre-commit run --all-files` to check the entire tree.
+
+repos:
+  # ---------------------------------------------------------------------------
+  # shellcheck — shell script static analysis
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: ["--severity=warning"]
+
+  # ---------------------------------------------------------------------------
+  # hadolint — Dockerfile best-practice linter
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint
+        args: ["--failure-threshold", "warning"]
+
+  # ---------------------------------------------------------------------------
+  # yamllint — YAML style and correctness checker
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args: ["-d", "{extends: default, rules: {line-length: {max: 120}}}"]
+
+  # ---------------------------------------------------------------------------
+  # gitleaks — secrets scanner (prevents accidental credential commits)
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.27.2
+    hooks:
+      - id: gitleaks
