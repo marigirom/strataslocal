@@ -66,4 +66,58 @@ any application code is written.
 
 ---
 
-<!-- Next release will be v0.2.0-phase1 (Linux Baseline as Code) -->
+## [v0.2.0-phase1] — 2026-11-01 — Phase 1: Linux Baseline as Code
+
+### Summary
+
+Phase 1 turns every KodeKloud Linux sysadmin lab skill into a repeatable,
+idempotent, testable script running inside Rocky Linux 9 Docker containers.
+All 33 bats assertions pass across three nodes; running `harden.sh` a second
+time produces zero changes. SELinux and firewalld are deferred to the VM
+extra step (Milestone 4).
+
+### Added
+
+- **`linux/dockerfiles/web-node/Dockerfile`** — Rocky Linux 9 + sshd,
+  `devops` user with SSH key, bats-core installed.
+- **`linux/dockerfiles/data-node/Dockerfile`** — same base + MariaDB server,
+  dual entrypoint starting both `sshd` and `mysqld_safe`.
+- **`linux/compose/docker-compose.yml`** — `bastion` + `web-node01/02/03` +
+  `data-node01`; `front` and `back` bridge networks; named `mariadb-data` volume.
+- **`linux/harden.sh`** — idempotent 8-section hardening script:
+  users/groups, permissions/ACLs, sshd, cron, PAM limits, packages,
+  timezone, sed config edits. Uses `CHANGED` counter; zero changes on second run.
+- **`linux/tests/bats-core`** — bats-core v1.14.0 as a git submodule.
+- **`linux/tests/container/hardening.bats`** — 33 test cases covering all
+  hardening sections; mimics KodeKloud grader assertion style.
+- **`Makefile`** — `up`, `down`, `build`, `test-linux`, `harden`,
+  `idempotent`, `lint` targets.
+- **`docs/evidence/phase1-test-output.txt`** — captured passing test run
+  and idempotency confirmation.
+- **`docs/adr/001-container-vs-vm-for-selinux.md`** — documents why SELinux
+  and firewalld require a VM, provider choice rationale, coverage table.
+- **`docs/runbooks/sshd-wont-restart.md`** — incident-style runbook covering
+  config syntax errors, wrong nologin path, systemd-in-container trap, and
+  missing host keys.
+
+### Fixed
+
+- Timezone: replaced `timedatectl set-timezone` (requires systemd PID 1)
+  with `ln -sf /usr/share/zoneinfo/...` — works in containers and VMs.
+- devops GID aligned to 2000 (matches Dockerfile `useradd`).
+- `named` binary test uses `test -x /usr/sbin/named` instead of `which`
+  (restricted `$PATH` in containers).
+
+### Definition of Done — Phase 1 containers ✅
+
+- [x] Dockerfiles build cleanly; `make up` starts all 5 containers.
+- [x] `make harden` runs `harden.sh` on all nodes without error.
+- [x] `make test-linux` — 33/33 passing on web-node01, web-node02, data-node01.
+- [x] `make idempotent` — zero `CHANGED` lines on second `harden.sh` run.
+- [x] Evidence saved to `docs/evidence/phase1-test-output.txt`.
+- [x] ADR 001 and sshd runbook written.
+- [ ] VM extra step (SELinux + firewalld) — pending Milestone 4.
+
+---
+
+<!-- Next release will be v0.2.0-phase1 (after VM extra step is complete) -->
