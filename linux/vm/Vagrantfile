@@ -1,0 +1,39 @@
+# linux/vm/Vagrantfile
+# Rocky Linux 9 VM for SELinux and firewalld testing.
+# Uses libvirt provider (required when KVM is loaded — VirtualBox conflicts with KVM).
+#
+# Usage:
+#   vagrant up
+#   vagrant ssh
+#   vagrant halt
+#   vagrant destroy -f
+#
+# Prerequisites:
+#   sudo apt install libvirt-daemon-system libvirt-dev ruby-dev build-essential
+#   vagrant plugin install vagrant-libvirt
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "rockylinux/9"
+  config.vm.hostname = "web-node-vm"
+
+  # libvirt provider — compatible with KVM
+  config.vm.provider "libvirt" do |lv|
+    lv.memory = 2048
+    lv.cpus   = 2
+    lv.driver = "kvm"
+  end
+
+  # Sync the linux/ directory into the VM so scripts and tests are available
+  # Default synced folder uses rsync — no NFS or guest additions needed
+  config.vm.synced_folder "..", "/vagrant", type: "rsync",
+    rsync__exclude: [".git/", "tests/bats-core/.git/"]
+
+  # Provision: run the same harden.sh used by containers (proves cross-env consistency)
+  config.vm.provision "shell", name: "harden", path: "../harden.sh"
+
+  # Provision: SELinux controls (VM-only — containers share host kernel)
+  config.vm.provision "shell", name: "selinux", path: "../vm-only/selinux.sh"
+
+  # Provision: firewalld rules (VM-only — unsafe in unprivileged containers)
+  config.vm.provision "shell", name: "firewall", path: "../vm-only/firewall.sh"
+end

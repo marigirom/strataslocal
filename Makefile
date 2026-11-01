@@ -2,19 +2,20 @@
 # Phase 1: Linux Baseline as Code
 #
 # Usage:
-#   make up           - build images and start all containers
-#   make down         - stop and remove containers
-#   make build        - build images only
-#   make test-linux   - run bats tests inside web-node01 (container tests)
-#   make lint         - run hadolint, shellcheck, yamllint
-#   make harden       - run harden.sh inside all nodes
-#   make idempotent   - run harden.sh a second time to verify zero changes
+#   make up              - build images and start all containers
+#   make down            - stop and remove containers
+#   make build           - build images only
+#   make test-linux      - run bats tests inside containers (fast, CI-safe)
+#   make test-linux-vm   - vagrant up + run VM bats tests (local only, ~3 min)
+#   make lint            - run hadolint, shellcheck, yamllint
+#   make harden          - run harden.sh inside all nodes
+#   make idempotent      - run harden.sh a second time to verify zero changes
 
 COMPOSE_FILE := linux/compose/docker-compose.yml
 COMPOSE      := docker compose -f $(COMPOSE_FILE)
 NODES        := web-node01 web-node02 web-node03 data-node01
 
-.PHONY: up down build test-linux lint harden idempotent help
+.PHONY: up down build test-linux test-linux-vm lint harden idempotent help
 
 ## up: Build images (if needed) and start all containers in the background
 up:
@@ -65,6 +66,17 @@ lint:
 	@find linux -name "*.sh" | xargs shellcheck
 	@echo "==> yamllint: YAML files..."
 	@find linux/compose -name "*.yml" | xargs yamllint
+
+## test-linux-vm: Boot the Vagrant VM and run SELinux + firewalld bats tests (local only)
+test-linux-vm:
+	@echo "==> Booting Vagrant VM (libvirt)..."
+	cd linux/vm && vagrant up
+	@echo "==> Running VM bats tests..."
+	cd linux/vm && vagrant ssh -c "sudo bats /vagrant/tests/vm/selinux-firewall.bats"
+	@echo "==> Saving VM test evidence..."
+	cd linux/vm && vagrant ssh -c "sudo bats /vagrant/tests/vm/selinux-firewall.bats" \
+		> docs/evidence/phase1-vm-test-output.txt 2>&1 || true
+	@echo "==> VM tests complete. Evidence: docs/evidence/phase1-vm-test-output.txt"
 
 ## help: Show this help message
 help:

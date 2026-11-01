@@ -48,13 +48,11 @@ Two options were evaluated:
 | **Vagrant + VirtualBox** | Easiest setup; `vagrant up` is one command; wide community support | Conflicts with KVM — cannot run if KVM modules are loaded |
 | **Vagrant + libvirt** | Linux-native; works alongside KVM; lighter on memory | Requires `libvirt-daemon-system` + `vagrant-libvirt` plugin install |
 
-**Chosen:** Vagrant + **libvirt** (if KVM is already running on the host) or
-Vagrant + **VirtualBox** (on a machine without KVM). The `Vagrantfile` defaults
-to VirtualBox; switching to libvirt requires only changing the provider line.
+**Chosen:** Vagrant + **libvirt** — confirmed by `lsmod | grep kvm` showing
+`kvm_intel` loaded. VirtualBox cannot coexist with KVM on this machine.
+The `Vagrantfile` is written for libvirt (`config.vm.provider "libvirt"`).
 
-Record the actual provider used in your environment here:
-
-> **Provider used on this machine:** _(fill in: virtualbox or libvirt)_
+> **Provider used on this machine:** libvirt (KVM/kvm_intel detected)
 
 ---
 
