@@ -8,14 +8,12 @@
 
 ## Architecture
 
-_Placeholder — architecture diagram will be added in Phase 1._
-
 The stack is built in layers, each phase producing independently verifiable
 artefacts before the next begins:
 
 ```
 Phase 0  →  Git Foundation
-Phase 1  →  Linux Baseline as Code (Ansible)
+Phase 1  →  Linux Baseline as Code (scripts + containers + VM)
 Phase 2  →  Docker (containerised workloads)
 Phase 3  →  Kubernetes on minikube
 Phase 4  →  CI/CD Pipeline (GitHub Actions / local runner)
@@ -24,23 +22,50 @@ Phase 6  →  Observability (Prometheus, Grafana, Loki)
 Phase 7  →  IaC, Docs and Runbooks (Terraform, MkDocs)
 ```
 
+**Phase 1 container topology:**
+
+```
+bastion  ──[front network]──  web-node01
+                           ├─ web-node02
+                           └─ web-node03
+                                  │
+                           [back network]
+                                  │
+                            data-node01 (+ MariaDB)
+```
+
 ---
 
 ## Quickstart
 
-_Placeholder — will be populated once Phase 1 is complete._
+### Prerequisites
 
-Prerequisites (to be documented per phase):
-- Linux host or VM (Fedora/RHEL-family recommended)
-- `git`, `make`, `python3`, `pip`, `docker`, `kubectl`, `helm`
+- Linux host (Fedora/RHEL-family recommended)
+- `git`, `make`, `docker`, `docker compose`
+- Python 3 + `pip` (for `pre-commit`)
+- `bats-core` is bundled as a git submodule — no separate install needed
+
+### Phase 1 — Linux Baseline
 
 ```bash
-# Clone and enter the repository
-git clone <repo-url> strataslocal
+# Clone (with submodules)
+git clone --recurse-submodules <repo-url> strataslocal
 cd strataslocal
 
-# See all available targets
-make help
+# Build images and start all containers
+make up
+
+# Apply the hardening baseline to all nodes
+make harden
+
+# Run the full bats test suite (33 tests × 3 nodes)
+make test-linux
+
+# Verify idempotency — second run must produce zero changes
+make idempotent
+
+# Stop containers (data volume is preserved)
+make down
 ```
 
 ---
@@ -50,7 +75,7 @@ make help
 | Phase | Sub-Task | Status |
 |-------|----------|--------|
 | 0 | [Git Foundation](docs/git-practice.md) | ✅ complete |
-| 1 | Linux Baseline as Code | 🔲 pending |
+| 1 | Linux Baseline as Code | ✅ complete (containers) / 🔲 VM pending |
 | 2 | Docker | 🔲 pending |
 | 3 | Kubernetes on minikube | 🔲 pending |
 | 4 | CI/CD Pipeline | 🔲 pending |

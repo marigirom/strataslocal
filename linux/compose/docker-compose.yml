@@ -1,0 +1,123 @@
+---
+# linux/compose/docker-compose.yml
+# Topology:
+#   front network: bastion <-> web-node01/02/03
+#   back  network: web-node01/02/03 <-> data-node01
+#
+# SSH access: use your ~/.ssh/id_ed25519 key as devops@<container>
+
+services:
+
+  bastion:
+    image: rockylinux:9
+    container_name: bastion
+    hostname: bastion
+    networks:
+      - front
+    volumes:
+      - type: bind
+        source: ${HOME}/.ssh/id_ed25519
+        target: /root/.ssh/id_ed25519
+        read_only: true
+      - type: bind
+        source: ${HOME}/.ssh/id_ed25519.pub
+        target: /root/.ssh/id_ed25519.pub
+        read_only: true
+    command: >
+      bash -c "
+        dnf install -y openssh-clients &&
+        chmod 600 /root/.ssh/id_ed25519 &&
+        tail -f /dev/null
+      "
+    depends_on:
+      - web-node01
+      - web-node02
+      - web-node03
+
+  web-node01:
+    build:
+      context: ..
+      dockerfile: dockerfiles/web-node/Dockerfile
+    image: strataslocal/web-node:latest
+    container_name: web-node01
+    hostname: web-node01
+    networks:
+      - front
+      - back
+    volumes:
+      - type: bind
+        source: ../harden.sh
+        target: /harden.sh
+        read_only: true
+      - type: bind
+        source: ../tests/container
+        target: /tests/container
+        read_only: true
+
+  web-node02:
+    image: strataslocal/web-node:latest
+    container_name: web-node02
+    hostname: web-node02
+    networks:
+      - front
+      - back
+    depends_on:
+      - web-node01
+    volumes:
+      - type: bind
+        source: ../harden.sh
+        target: /harden.sh
+        read_only: true
+      - type: bind
+        source: ../tests/container
+        target: /tests/container
+        read_only: true
+
+  web-node03:
+    image: strataslocal/web-node:latest
+    container_name: web-node03
+    hostname: web-node03
+    networks:
+      - front
+      - back
+    depends_on:
+      - web-node01
+    volumes:
+      - type: bind
+        source: ../harden.sh
+        target: /harden.sh
+        read_only: true
+      - type: bind
+        source: ../tests/container
+        target: /tests/container
+        read_only: true
+
+  data-node01:
+    build:
+      context: ..
+      dockerfile: dockerfiles/data-node/Dockerfile
+    image: strataslocal/data-node:latest
+    container_name: data-node01
+    hostname: data-node01
+    networks:
+      - back
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - type: bind
+        source: ../harden.sh
+        target: /harden.sh
+        read_only: true
+      - type: bind
+        source: ../tests/container
+        target: /tests/container
+        read_only: true
+
+networks:
+  front:
+    driver: bridge
+  back:
+    driver: bridge
+
+volumes:
+  mariadb-data:
+    driver: local

@@ -1,0 +1,163 @@
+# Phase 1 Test Evidence
+# Generated: Sun Nov  1 01:18:46 PM UTC 2026
+# Branch: feat/linux-baseline
+
+## make test-linux — 33/33 passing on web-node01, web-node02, data-node01
+
+==> Running hardening tests on web-node01...
+docker exec web-node01 bats /tests/container/hardening.bats
+1..33
+ok 1 group sysadmin exists with GID 3000
+ok 2 group devops exists with GID 2000
+ok 3 user svc-backup exists with UID 4001
+ok 4 user svc-monitor exists with UID 4002
+ok 5 svc-backup shell is /usr/sbin/nologin
+ok 6 svc-monitor shell is /usr/sbin/nologin
+ok 7 svc-backup account expiry is set
+ok 8 /opt/lab directory exists
+ok 9 /opt/lab/deploy.sh is executable by all
+ok 10 /opt/lab group ownership is devops
+ok 11 /opt/lab permissions are 2775
+ok 12 /opt/lab has ACL entry for group devops rwx
+ok 13 sshd_config: PermitRootLogin no
+ok 14 sshd_config: PasswordAuthentication no
+ok 15 sshd_config: PubkeyAuthentication yes
+ok 16 sshd_config: X11Forwarding no
+ok 17 sshd -t config validation passes
+ok 18 cron.allow contains root
+ok 19 cron.allow contains devops
+ok 20 cron.deny contains svc-backup
+ok 21 cron.deny contains svc-monitor
+ok 22 root crontab contains backup job
+ok 23 limits.conf: devops soft nofile 65536
+ok 24 limits.conf: devops hard nofile 65536
+ok 25 limits.conf: @sysadmin soft nproc 100
+ok 26 package bind is installed
+ok 27 package cronie is installed
+ok 28 package traceroute is installed
+ok 29 named binary is available (provided by bind package)
+ok 30 timezone is set to America/New_York
+ok 31 /etc/lab-demo.conf exists
+ok 32 /etc/lab-demo.conf: MAX_CONNECTIONS is 50
+ok 33 /etc/lab-demo.conf: LOG_LEVEL is info
+==> Running hardening tests on web-node02...
+docker exec web-node02 bats /tests/container/hardening.bats
+1..33
+ok 1 group sysadmin exists with GID 3000
+ok 2 group devops exists with GID 2000
+ok 3 user svc-backup exists with UID 4001
+ok 4 user svc-monitor exists with UID 4002
+ok 5 svc-backup shell is /usr/sbin/nologin
+ok 6 svc-monitor shell is /usr/sbin/nologin
+ok 7 svc-backup account expiry is set
+ok 8 /opt/lab directory exists
+ok 9 /opt/lab/deploy.sh is executable by all
+ok 10 /opt/lab group ownership is devops
+ok 11 /opt/lab permissions are 2775
+ok 12 /opt/lab has ACL entry for group devops rwx
+ok 13 sshd_config: PermitRootLogin no
+ok 14 sshd_config: PasswordAuthentication no
+ok 15 sshd_config: PubkeyAuthentication yes
+ok 16 sshd_config: X11Forwarding no
+ok 17 sshd -t config validation passes
+ok 18 cron.allow contains root
+ok 19 cron.allow contains devops
+ok 20 cron.deny contains svc-backup
+ok 21 cron.deny contains svc-monitor
+ok 22 root crontab contains backup job
+ok 23 limits.conf: devops soft nofile 65536
+ok 24 limits.conf: devops hard nofile 65536
+ok 25 limits.conf: @sysadmin soft nproc 100
+ok 26 package bind is installed
+ok 27 package cronie is installed
+ok 28 package traceroute is installed
+ok 29 named binary is available (provided by bind package)
+ok 30 timezone is set to America/New_York
+ok 31 /etc/lab-demo.conf exists
+ok 32 /etc/lab-demo.conf: MAX_CONNECTIONS is 50
+ok 33 /etc/lab-demo.conf: LOG_LEVEL is info
+==> Running hardening tests on data-node01...
+docker exec data-node01 bats /tests/container/hardening.bats
+1..33
+ok 1 group sysadmin exists with GID 3000
+ok 2 group devops exists with GID 2000
+ok 3 user svc-backup exists with UID 4001
+ok 4 user svc-monitor exists with UID 4002
+ok 5 svc-backup shell is /usr/sbin/nologin
+ok 6 svc-monitor shell is /usr/sbin/nologin
+ok 7 svc-backup account expiry is set
+ok 8 /opt/lab directory exists
+ok 9 /opt/lab/deploy.sh is executable by all
+ok 10 /opt/lab group ownership is devops
+ok 11 /opt/lab permissions are 2775
+ok 12 /opt/lab has ACL entry for group devops rwx
+ok 13 sshd_config: PermitRootLogin no
+ok 14 sshd_config: PasswordAuthentication no
+ok 15 sshd_config: PubkeyAuthentication yes
+ok 16 sshd_config: X11Forwarding no
+ok 17 sshd -t config validation passes
+ok 18 cron.allow contains root
+ok 19 cron.allow contains devops
+ok 20 cron.deny contains svc-backup
+ok 21 cron.deny contains svc-monitor
+ok 22 root crontab contains backup job
+ok 23 limits.conf: devops soft nofile 65536
+ok 24 limits.conf: devops hard nofile 65536
+ok 25 limits.conf: @sysadmin soft nproc 100
+ok 26 package bind is installed
+ok 27 package cronie is installed
+ok 28 package traceroute is installed
+ok 29 named binary is available (provided by bind package)
+ok 30 timezone is set to America/New_York
+ok 31 /etc/lab-demo.conf exists
+ok 32 /etc/lab-demo.conf: MAX_CONNECTIONS is 50
+ok 33 /etc/lab-demo.conf: LOG_LEVEL is info
+
+## make idempotent — zero changes on second harden.sh run
+
+==> Idempotency check: running harden.sh a second time on web-node01...
+docker exec -u root web-node01 bash /harden.sh 2>&1 | tee /tmp/idempotent-check.txt
+[harden] --- Section 1: Users and Groups ---
+[harden] nologin path: /usr/sbin/nologin
+[harden] OK (no change): group sysadmin exists
+[harden] OK (no change): group devops exists
+[harden] OK (no change): user svc-backup exists
+[harden] OK (no change): user svc-monitor exists
+[harden] OK (no change): svc-backup expiry already set
+[harden] --- Section 2: Permissions and ACLs ---
+[harden] OK (no change): /opt/lab/deploy.sh already executable by all (perms: 755)
+[harden] OK (no change): /opt/lab ownership already root:devops
+[harden] OK (no change): /opt/lab permissions already 2775
+[harden] OK (no change): ACL g:devops:rwx already on /opt/lab
+[harden] --- Section 3: sshd Hardening ---
+[harden] OK (no change): sshd: PermitRootLogin no already set
+[harden] OK (no change): sshd: PasswordAuthentication no already set
+[harden] OK (no change): sshd: PubkeyAuthentication yes already set
+[harden] OK (no change): sshd: X11Forwarding no already set
+[harden] --- Section 4: Cron ---
+[harden] OK (no change): cron.allow: root already present
+[harden] OK (no change): cron.allow: devops already present
+[harden] OK (no change): cron.deny: svc-backup already present
+[harden] OK (no change): cron.deny: svc-monitor already present
+[harden] OK (no change): cron: backup job already present
+[harden] --- Section 5: PAM Limits ---
+[harden] OK (no change): limits.conf: 'devops           soft    nofile          65536' already present
+[harden] OK (no change): limits.conf: 'devops           hard    nofile          65536' already present
+[harden] OK (no change): limits.conf: '@sysadmin        soft    nproc           100' already present
+[harden] OK (no change): limits.conf: '@sysadmin        hard    nproc           200' already present
+[harden] WARNING: pam_limits.so not found in /etc/pam.d/login — limits may not apply at login.
+[harden] --- Section 6: Package Management ---
+[harden] OK (no change): package bind already installed
+[harden] OK (no change): package cronie already installed
+[harden] OK (no change): package traceroute already installed
+[harden] --- Section 7: Timezone and Archive ---
+[harden] OK (no change): timezone already America/New_York
+[harden] OK (no change): archive /tmp/lab-archive.tar.gz already exists
+[harden] OK (no change): extraction dir /tmp/lab-extracted already exists
+[harden] --- Section 8: sed Config Edits ---
+[harden] OK (no change): /etc/lab-demo.conf: MAX_CONNECTIONS already 50
+[harden] OK (no change): /etc/lab-demo.conf: LOG_LEVEL already info
+[harden] --- Summary ---
+[harden] IDEMPOTENT: script ran with ZERO changes (already hardened).
+==> Checking for CHANGED lines...
+PASS: Zero changes on second run — script is idempotent.
