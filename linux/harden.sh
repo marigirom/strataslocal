@@ -58,8 +58,9 @@ ensure_user() {
     fi
 }
 
+# devops group GID 2000 — matches the Dockerfile useradd (must be consistent)
 ensure_group sysadmin 3000
-ensure_group devops    3001
+ensure_group devops    2000
 
 ensure_user svc-backup  4001 sysadmin "$NOLOGIN" "Backup Service Account"
 ensure_user svc-monitor 4002 sysadmin "$NOLOGIN" "Monitor Service Account"

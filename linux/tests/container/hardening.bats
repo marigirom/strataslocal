@@ -13,10 +13,10 @@
     echo "$output" | grep -q ":3000:"
 }
 
-@test "group devops exists with GID 3001" {
+@test "group devops exists with GID 2000" {
     run getent group devops
     [ "$status" -eq 0 ]
-    echo "$output" | grep -q ":3001:"
+    echo "$output" | grep -q ":2000:"
 }
 
 @test "user svc-backup exists with UID 4001" {
@@ -182,7 +182,8 @@
 }
 
 @test "named binary is available (provided by bind package)" {
-    run which named
+    # 'which' may not find /usr/sbin in a container's restricted PATH; check directly
+    run test -x /usr/sbin/named
     [ "$status" -eq 0 ]
 }
 
