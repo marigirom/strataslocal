@@ -191,7 +191,8 @@
 # ---------------------------------------------------------------------------
 
 @test "timezone is set to America/New_York" {
-    run timedatectl show --property=Timezone --value
+    # timedatectl requires systemd (not available in containers); read symlink directly
+    run bash -c "readlink /etc/localtime | sed 's|.*/zoneinfo/||'"
     [ "$status" -eq 0 ]
     [ "$output" = "America/New_York" ]
 }

@@ -270,9 +270,14 @@ install_if_absent traceroute
 log "--- Section 7: Timezone and Archive ---"
 
 TARGET_TZ="America/New_York"
-CURRENT_TZ=$(timedatectl show --property=Timezone --value 2>/dev/null || cat /etc/localtime | xargs -I{} basename {})
+
+# Read timezone from the localtime symlink — works in containers and VMs
+# (timedatectl requires systemd as PID 1, which containers do not have)
+CURRENT_TZ=$(readlink /etc/localtime 2>/dev/null | sed 's|.*/zoneinfo/||')
+
 if [ "$CURRENT_TZ" != "$TARGET_TZ" ]; then
-    timedatectl set-timezone "$TARGET_TZ"
+    ln -sf "/usr/share/zoneinfo/${TARGET_TZ}" /etc/localtime
+    echo "$TARGET_TZ" > /etc/timezone
     changed "timezone set to $TARGET_TZ"
 else
     skip "timezone already $TARGET_TZ"
