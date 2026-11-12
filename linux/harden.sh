@@ -290,9 +290,16 @@ log "--- Section 7: Timezone and Archive ---"
 
 TARGET_TZ="America/New_York"
 
-# Read timezone from the localtime symlink — works in containers and VMs
-# (timedatectl requires systemd as PID 1, which containers do not have)
-CURRENT_TZ=$(readlink /etc/localtime 2>/dev/null | sed 's|.*/zoneinfo/||')
+# Read timezone — try symlink first (containers), then /etc/timezone (VMs),
+# then timedatectl (VM with systemd). Use || true to avoid set -e abort.
+CURRENT_TZ=""
+CURRENT_TZ=$(readlink /etc/localtime 2>/dev/null | sed 's|.*/zoneinfo/||') || true
+if [ -z "$CURRENT_TZ" ] && [ -f /etc/timezone ]; then
+    CURRENT_TZ=$(tr -d '[:space:]' < /etc/timezone 2>/dev/null) || true
+fi
+if [ -z "$CURRENT_TZ" ] && command -v timedatectl &>/dev/null; then
+    CURRENT_TZ=$(timedatectl show --property=Timezone --value 2>/dev/null) || true
+fi
 
 if [ "$CURRENT_TZ" != "$TARGET_TZ" ]; then
     ln -sf "/usr/share/zoneinfo/${TARGET_TZ}" /etc/localtime
