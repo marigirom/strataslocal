@@ -30,16 +30,21 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "..", "/vagrant", type: "rsync",
     rsync__exclude: [".git/", "tests/bats-core/.git/"]
 
-  # Provision: run the same harden.sh used by containers (proves cross-env consistency).
-  # VAGRANT_SKIP_SSHD=1 prevents sshd_config patching during provisioning — patching
-  # it mid-session breaks the SCP connection Vagrant uses for subsequent provisioners.
-  # After 'vagrant up', SSH in and run: sudo VAGRANT_SKIP_SSHD="" bash /vagrant/harden.sh
-  config.vm.provision "shell", name: "harden", path: "../harden.sh",
-    env: { "VAGRANT_SKIP_SSHD" => "1" }
+  # Use inline provisioners that call scripts via the synced folder (/vagrant/).
+  # This avoids Vagrant's SCP upload (net-scp 255 errors with vagrant-libvirt)
+  # since the scripts are already available via rsync at /vagrant/.
 
-  # Provision: SELinux controls (VM-only — containers share host kernel)
-  config.vm.provision "shell", name: "selinux", path: "../vm-only/selinux.sh"
+  # harden.sh: VAGRANT_SKIP_SSHD=1 skips sshd_config patching during provisioning
+  # (patching mid-session would break SSH for subsequent provisioners).
+  # After 'vagrant up', run: vagrant ssh -c "sudo bash /vagrant/harden.sh"
+  config.vm.provision "shell", name: "harden",
+    inline: "VAGRANT_SKIP_SSHD=1 bash /vagrant/harden.sh"
 
-  # Provision: firewalld rules (VM-only — unsafe in unprivileged containers)
-  config.vm.provision "shell", name: "firewall", path: "../vm-only/firewall.sh"
+  # SELinux controls (VM-only — containers share host kernel)
+  config.vm.provision "shell", name: "selinux",
+    inline: "bash /vagrant/vm-only/selinux.sh"
+
+  # firewalld rules (VM-only — unsafe in unprivileged containers)
+  config.vm.provision "shell", name: "firewall",
+    inline: "bash /vagrant/vm-only/firewall.sh"
 end
