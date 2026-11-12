@@ -178,11 +178,13 @@ if ! sshd -t 2>/dev/null; then
 fi
 
 if [ "$SSHD_CHANGED" -gt 0 ]; then
-    # In containers sshd runs as PID 1 substitute; send HUP if running
-    if pgrep -x sshd &>/dev/null; then
-        kill -HUP "$(pgrep -x sshd | head -1)"
-        changed "sshd reloaded (HUP sent)"
-    fi
+    # NOTE: we intentionally do NOT reload sshd here.
+    # Sending HUP to the listener sshd kills the current SSH session
+    # (breaks Vagrant provisioner, CI runners, existing admin sessions).
+    # The new sshd_config takes effect for all NEW connections automatically;
+    # existing sessions are unaffected. Manual reload is safe after re-login:
+    #   systemctl reload sshd  (VM)  or  kill -HUP $(pgrep -ox sshd)  (container)
+    log "sshd config updated — changes apply to new connections (no reload performed)"
 fi
 
 # ---------------------------------------------------------------------------
