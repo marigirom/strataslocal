@@ -12,8 +12,10 @@
 #   sudo apt install libvirt-daemon-system libvirt-dev ruby-dev build-essential
 #   vagrant plugin install vagrant-libvirt
 
+# generic/rocky9 is used instead of rockylinux/9 because rockylinux/9
+# has no working libvirt build on Vagrant Cloud (returns 404).
 Vagrant.configure("2") do |config|
-  config.vm.box = "rockylinux/9"
+  config.vm.box = "generic/rocky9"
   config.vm.hostname = "web-node-vm"
 
   # libvirt provider — compatible with KVM

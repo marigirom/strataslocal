@@ -16,6 +16,16 @@ changed(){ log "CHANGED: $*"; CHANGED=$((CHANGED + 1)); }
 skip()   { log "OK (no change): $*"; }
 
 # ---------------------------------------------------------------------------
+# 0. BOOTSTRAP — install cronie before the cron section needs it
+# ---------------------------------------------------------------------------
+# cronie provides crontab; it must be present before Section 4 runs.
+# In containers it is pre-installed via the Dockerfile; in a fresh VM it may not be.
+if ! rpm -q cronie &>/dev/null; then
+    dnf install -y cronie
+    changed "bootstrap: cronie installed"
+fi
+
+# ---------------------------------------------------------------------------
 # 1. USERS AND GROUPS
 # ---------------------------------------------------------------------------
 log "--- Section 1: Users and Groups ---"
@@ -203,9 +213,15 @@ for cron_user in svc-backup svc-monitor; do
 done
 
 # Add a scheduled backup crontab entry for root
+# Use a temp file instead of pipe — piping to 'crontab -' fails in
+# non-interactive shells (e.g. Vagrant provisioner) when cronie is new.
 BACKUP_JOB="0 2 * * * /opt/lab/deploy.sh >> /var/log/deploy.log 2>&1"
 if ! crontab -l 2>/dev/null | grep -qF "$BACKUP_JOB"; then
-    (crontab -l 2>/dev/null; echo "$BACKUP_JOB") | crontab -
+    CRONTMP=$(mktemp)
+    crontab -l 2>/dev/null > "$CRONTMP" || true
+    echo "$BACKUP_JOB" >> "$CRONTMP"
+    crontab "$CRONTMP"
+    rm -f "$CRONTMP"
     changed "cron: backup job added for root"
 else
     skip "cron: backup job already present"
