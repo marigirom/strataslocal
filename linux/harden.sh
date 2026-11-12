@@ -146,6 +146,14 @@ fi
 # ---------------------------------------------------------------------------
 log "--- Section 3: sshd Hardening ---"
 
+# VAGRANT_SKIP_SSHD: set to any non-empty value to skip sshd patching.
+# Patching sshd_config during provisioning breaks the next SCP connection
+# that Vagrant uses to upload subsequent provisioner scripts.
+# Run 'sudo bash harden.sh' again after 'vagrant up' to apply sshd settings.
+if [ -n "${VAGRANT_SKIP_SSHD:-}" ]; then
+    skip "sshd hardening skipped (VAGRANT_SKIP_SSHD is set)"
+else
+
 SSHD_CONF=/etc/ssh/sshd_config
 SSHD_CHANGED=0
 
@@ -185,7 +193,9 @@ if [ "$SSHD_CHANGED" -gt 0 ]; then
     # existing sessions are unaffected. Manual reload is safe after re-login:
     #   systemctl reload sshd  (VM)  or  kill -HUP $(pgrep -ox sshd)  (container)
     log "sshd config updated — changes apply to new connections (no reload performed)"
-fi
+fi # end VAGRANT_SKIP_SSHD guard
+
+fi # end sshd section
 
 # ---------------------------------------------------------------------------
 # 4. CRON
