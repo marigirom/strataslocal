@@ -60,10 +60,12 @@ fi
 # ---------------------------------------------------------------------------
 log "--- SELinux File Contexts ---"
 
-# Restore contexts on ssh host keys and config (safe to run multiple times)
-restorecon -Rv /etc/ssh/ 2>/dev/null | grep -v "^$" | while read -r line; do
-    changed "restorecon: $line"
-done || true
+# NOTE: we intentionally do NOT run restorecon on /etc/ssh/ here.
+# Resetting SSH host key contexts while sshd is running (and on subsequent
+# provisioner connections) can cause sshd to fail to read its host keys
+# under Enforcing mode, breaking all SSH connections.
+# /etc/ssh/ contexts are correct on a fresh Rocky 9 install.
+skip "restorecon /etc/ssh/ skipped (host key contexts are correct by default)"
 
 # Restore /opt/lab if it exists (harden.sh creates it)
 if [ -d /opt/lab ]; then

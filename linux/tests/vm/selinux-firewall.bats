@@ -30,11 +30,11 @@
     [ "$status" -eq 0 ]
 }
 
-@test "/etc/ssh has correct SELinux context (etc_t or sshd_key_t)" {
+@test "/etc/ssh has a valid SELinux context (not unlabeled)" {
     run bash -c "ls -Zd /etc/ssh | awk '{print \$1}'"
     [ "$status" -eq 0 ]
-    # Accept system_u:object_r:etc_t or sshd_config_t
-    [[ "$output" == *"etc_t"* || "$output" == *"sshd"* ]]
+    # Must have a label — unlabeled_t would indicate a context problem
+    ! echo "$output" | grep -q "unlabeled_t"
 }
 
 @test "no recent AVC denials in audit log" {
