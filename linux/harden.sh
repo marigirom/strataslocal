@@ -152,13 +152,13 @@ SSHD_CHANGED=0
 patch_sshd() {
     local key=$1 value=$2
     # If the exact "key value" line already exists (uncommented), skip
-    if grep -qE "^${key}\s+${value}$" "$SSHD_CONF"; then
+    if grep -qE "^${key}[[:space:]]+${value}$" "$SSHD_CONF"; then
         skip "sshd: $key $value already set"
         return
     fi
-    # If the key exists (commented or different value), replace it
-    if grep -qE "^#?\s*${key}\s+" "$SSHD_CONF"; then
-        sed -i "s|^#\?\s*${key}\s.*|${key} ${value}|" "$SSHD_CONF"
+    # If the key exists (commented or different value), replace it with sed -E (ERE)
+    if grep -qE "^#?[[:space:]]*${key}[[:space:]]+" "$SSHD_CONF"; then
+        sed -i -E "s|^#?[[:space:]]*${key}[[:space:]].*|${key} ${value}|" "$SSHD_CONF"
     else
         echo "${key} ${value}" >> "$SSHD_CONF"
     fi
