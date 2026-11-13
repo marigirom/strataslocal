@@ -43,12 +43,9 @@ Vagrant.configure("2") do |config|
     echo "==> Running harden.sh (VAGRANT_SKIP_SSHD=1)..."
     VAGRANT_SKIP_SSHD=1 bash /vagrant/harden.sh
     echo "==> Running selinux.sh..."
-    bash /vagrant/vm-only/selinux.sh || true
+    bash /vagrant/vm-only/selinux.sh
     echo "==> Running firewall.sh..."
-    bash /vagrant/vm-only/firewall.sh || true
+    bash /vagrant/vm-only/firewall.sh
     echo "==> All provisioners complete."
-    # Ensure sshd is healthy before Vagrant's post-provision SSH check
-    systemctl restart sshd
-    sleep 2
   SHELL
 end

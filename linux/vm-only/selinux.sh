@@ -15,6 +15,28 @@ changed(){ log "CHANGED: $*"; CHANGED=$((CHANGED + 1)); }
 skip()   { log "OK (no change): $*"; }
 
 # ---------------------------------------------------------------------------
+# 0. Fix sshd host key contexts FIRST
+# ---------------------------------------------------------------------------
+# semanage port changes (§3) trigger an SELinux policy reload.
+# If host key files have wrong contexts at that moment, sshd cannot read
+# them on restart — breaking SSH. Restore contexts before any semanage call.
+log "--- SELinux File Contexts (pre-flight) ---"
+
+# Use a subshell glob check to avoid ls|grep (SC2010)
+if compgen -G "/etc/ssh/ssh_host_*_key" > /dev/null 2>&1; then
+    restorecon /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub 2>/dev/null || true
+    skip "restorecon applied to sshd host key files"
+fi
+
+# Restore /opt/lab if it exists (harden.sh creates it)
+if [ -d /opt/lab ]; then
+    restorecon -Rv /opt/lab/ 2>/dev/null | grep -v "^$" | while read -r line; do
+        changed "restorecon: $line"
+    done || true
+    skip "restorecon applied to /opt/lab/"
+fi
+
+# ---------------------------------------------------------------------------
 # 1. Verify SELinux is Enforcing
 # ---------------------------------------------------------------------------
 log "--- SELinux Enforcement ---"
@@ -53,26 +75,6 @@ if semanage port -l | grep -q "^ssh_port_t.*tcp.*2222"; then
 else
     semanage port -a -t ssh_port_t -p tcp 2222
     changed "port 2222 labelled as ssh_port_t"
-fi
-
-# ---------------------------------------------------------------------------
-# 4. Restore default file contexts
-# ---------------------------------------------------------------------------
-log "--- SELinux File Contexts ---"
-
-# NOTE: we intentionally do NOT run restorecon on /etc/ssh/ here.
-# Resetting SSH host key contexts while sshd is running (and on subsequent
-# provisioner connections) can cause sshd to fail to read its host keys
-# under Enforcing mode, breaking all SSH connections.
-# /etc/ssh/ contexts are correct on a fresh Rocky 9 install.
-skip "restorecon /etc/ssh/ skipped (host key contexts are correct by default)"
-
-# Restore /opt/lab if it exists (harden.sh creates it)
-if [ -d /opt/lab ]; then
-    restorecon -Rv /opt/lab/ 2>/dev/null | grep -v "^$" | while read -r line; do
-        changed "restorecon: $line"
-    done || true
-    skip "restorecon applied to /opt/lab/"
 fi
 
 # ---------------------------------------------------------------------------
