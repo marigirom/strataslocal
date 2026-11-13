@@ -43,18 +43,18 @@ Vagrant.configure("2") do |config|
     echo "==> Running harden.sh (VAGRANT_SKIP_SSHD=1)..."
     VAGRANT_SKIP_SSHD=1 bash /vagrant/harden.sh
 
-    echo "==> Temporarily setting SELinux permissive for provisioning..."
+    echo "==> Running selinux.sh (in permissive mode)..."
     setenforce 0
-
-    echo "==> Running selinux.sh..."
     bash /vagrant/vm-only/selinux.sh
+
+    echo "==> Fixing all contexts before re-enforcing..."
+    restorecon -R /etc/ssh/ /etc/pam.d/ /etc/cron.d/ /etc/security/ 2>/dev/null || true
+
+    echo "==> Re-enabling SELinux Enforcing..."
+    setenforce 1
 
     echo "==> Running firewall.sh..."
     bash /vagrant/vm-only/firewall.sh
-
-    echo "==> Restoring SELinux to Enforcing..."
-    restorecon -R /etc/ssh/ 2>/dev/null || true
-    setenforce 1
 
     echo "==> All provisioners complete."
   SHELL
